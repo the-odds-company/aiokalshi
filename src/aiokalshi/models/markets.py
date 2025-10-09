@@ -1,15 +1,44 @@
 from pydantic import BaseModel
 import datetime
-from typing import TypedDict, Literal
+from typing import TypedDict, Literal, Optional
 
 Status = Literal["unopened", "open", "closed", "settled"]
 
 
+class BidAskDistribution(BaseModel):
+    """OHLC data for bid/ask prices"""
+
+    open: int | None = None
+    high: int | None = None
+    low: int | None = None
+    close: int | None = None
+
+
+class PriceDistribution(BaseModel):
+    """OHLC and volume data for trade prices"""
+
+    open: int | None = None
+    high: int | None = None
+    low: int | None = None
+    close: int | None = None
+
+
+class MarketCandlestick(BaseModel):
+    """Candlestick data for a market over a specific time period"""
+
+    end_period_ts: int
+    open_interest: int | None = None
+    price: PriceDistribution | None = None
+    volume: int | None = None
+    yes_ask: BidAskDistribution | None = None
+    yes_bid: BidAskDistribution | None = None
+
+
 class OrderBook(BaseModel):
-    no: list[tuple[int, int]]
-    yes: list[tuple[int, int]]
-    no_dollars: list[tuple[float, float]]
-    yes_dollars: list[tuple[float, float]]
+    no: list[tuple[int, int]] | None = None
+    yes: list[tuple[int, int]] | None = None
+    no_dollars: list[tuple[float, float]] | None = None
+    yes_dollars: list[tuple[float, float]] | None = None
 
 
 class Trade(BaseModel):
@@ -74,14 +103,16 @@ class Market(BaseModel):
 
 
 class GetMarketsRequest(TypedDict, total=False):
-    limit: int
-    cursor: str
-    event_ticker: str
-    series_ticker: str
-    max_close_ts: int
-    min_close_ts: int
-    status: Status
-    tickers: str
+    """Query parameters for the Get Markets endpoint"""
+
+    limit: int | None  # Number of results per page (max 1000, default 100)
+    cursor: str | None  # Pagination cursor
+    event_ticker: str | None  # Filter by event ticker
+    series_ticker: str | None  # Filter by series ticker
+    max_close_ts: int | None  # Filter by maximum close timestamp
+    min_close_ts: int | None  # Filter by minimum close timestamp
+    status: Status | None  # Filter by market status
+    tickers: str | None  # Comma-separated list of market tickers
 
 
 class GetMarketsResponse(BaseModel):
@@ -90,11 +121,13 @@ class GetMarketsResponse(BaseModel):
 
 
 class GetTradesRequest(TypedDict, total=False):
-    limit: int
-    cursor: str
-    ticker: str
-    min_ts: int
-    max_ts: int
+    """Query parameters for the Get Trades endpoint"""
+
+    limit: int | None  # Number of results per page (max 1000, default 100)
+    cursor: str | None  # Pagination cursor
+    ticker: str | None  # Filter by market ticker
+    min_ts: int | None  # Filter by minimum timestamp
+    max_ts: int | None  # Filter by maximum timestamp
 
 
 class GetTradesResponse(BaseModel):
@@ -115,3 +148,18 @@ class GetMarketOrderBookRequest(TypedDict, total=False):
 
 class GetMarketorderBookResponse(BaseModel):
     orderbook: OrderBook
+
+
+class GetMarketCandlesticksRequest(TypedDict, total=False):
+    """Query parameters for the Get Market Candlesticks endpoint"""
+
+    start_ts: int  # Required - Start timestamp (Unix)
+    end_ts: int  # Required - End timestamp (Unix)
+    period_interval: int  # Required - 1 (1 min), 60 (1 hour), or 1440 (1 day)
+
+
+class GetMarketCandlesticksResponse(BaseModel):
+    """Response from the Get Market Candlesticks endpoint"""
+
+    candlesticks: list[MarketCandlestick]
+    ticker: str

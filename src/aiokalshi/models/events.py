@@ -28,12 +28,12 @@ Status = Literal["open", "closed", "settled"]
 class GetEventsRequest(TypedDict, total=False):
     """The query params to the `Get Events` endpoint"""
 
-    limit: int | None
-    cursor: str | None
-    with_nested_markets: bool | None
-    status: Status | None
-    series_ticker: str | None
-    min_close_ts: int | None
+    limit: int | None  # Number of results per page (max 200, default 100)
+    cursor: str | None  # Pagination cursor
+    with_nested_markets: bool | None  # Include markets nested within events
+    status: Status | None  # Filter by event status
+    series_ticker: str | None  # Filter by series ticker
+    min_close_ts: int | None  # Filter by minimum close timestamp
 
 
 class GetEventsResponse(BaseModel):
